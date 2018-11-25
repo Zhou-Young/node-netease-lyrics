@@ -1,0 +1,86 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="wrap">
+  </div>
+</body>
+
+<script src="./d3/wordcloud/d3.js"></script>
+<script src="./d3/wordcloud/build/d3.layout.cloud.js"></script>
+
+<script>
+  $(function () {
+    //写法简单，同步请求
+    /*  //获取页面数组
+            $.getJSON("demo.json",function (data) {
+                var dataArrays = data;
+                var backRegion = dataArrays.backRegion;
+                var equCostTittle = dataArrays.equCostTittle;
+            });*/
+    //写法稍微复杂，异步请求
+    $.ajax({
+      type: "get", //请求方式
+      url: "word.json", //地址，就是json文件的请求路径
+      dataType: "json", //数据类型可以为 text xml json  script  jsonp
+      async: false,
+      success: function (data) { //返回的参数就是 action里面所有的有get和set方法的参数
+        var words = data;
+        console.log(words)
+        // d3-cloud 词云
+        var fill = d3.scale.category20();
+        var layout = d3.layout.cloud()
+          .size([500, 500])
+          .words(words)
+          .padding(0)
+          .rotate(function () {
+            return ~~(Math.random() * 2) * 90;
+          })
+          .font("Impact")
+          .fontSize(function (d) {
+            return d.size;
+          })
+          .on("end", draw);
+
+        layout.start();
+
+        function draw(words) {
+          d3.select("#wrap").append("svg")
+            .attr("width", layout.size()[0])
+            .attr("height", layout.size()[1])
+            .append("g")
+            .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+            .selectAll("text")
+            .data(words)
+            .enter().append("text")
+            .style("font-size", function (d) {
+              return d.size + "px";
+            })
+            .style("font-family", "Impact")
+            .style("fill", function (d, i) {
+              return fill(i);
+            })
+            .attr("text-anchor", "middle")
+            .attr("transform", function (d) {
+              return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            })
+            .text(function (d) {
+              return d.word;
+            });
+        }
+
+      }
+    });
+
+  })
+
+</script>
+
+</html>
